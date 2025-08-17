@@ -41,7 +41,6 @@
     (modify-syntax-entry ?\\ "\\" table)
 
     ;; additional symbols
-    (modify-syntax-entry ?_ "w" table)
 
     (modify-syntax-entry ?' "." table)
     (modify-syntax-entry ?: "." table)
@@ -82,7 +81,7 @@
     "bool"))
 
 (defun jai-wrap-word-rx (s)
-  (concat "\\<" s "\\>"))
+  (concat "\\_<" s "\\_>"))
 
 (defun jai-keywords-rx (keywords)
   "build keyword regexp"
@@ -140,10 +139,10 @@
     (,(jai-keywords-rx jai-builtins) 1 font-lock-variable-name-face)
 
     ;; Hash directives
-    ("#\\w+" . font-lock-preprocessor-face)
+    ("#[[:word:]_]+" . font-lock-preprocessor-face)
 
     ;; At notes
-    ("@\\w+" . font-lock-preprocessor-face)
+    ("@[[:word:]_]w+" . font-lock-preprocessor-face)
 
     ;; Strings
     ("\\\".*\\\"" . font-lock-string-face)
