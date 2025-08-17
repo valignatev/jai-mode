@@ -98,6 +98,37 @@
        (opt (and (any "_" "A-Z" "a-z") (* (any "_" "A-Z" "a-z" "0-9"))))
        symbol-end)))
 
+(defun jai-syntax-propertize-function (start end)
+  "Mark all heredoc regions as strings in the buffer."
+  (goto-char start)
+  ;; If we're already inside a herestring we have to take care of that one first
+  (when-let* ((ppss (syntax-ppss))
+         (inside (eq t (nth 3 ppss)))
+         (start-pos (nth 8 ppss))
+         (tag (get-text-property start-pos 'here-string-marker)))
+    (when (re-search-forward (concat "^" (regexp-quote tag) "$") end 'move)
+      (let ((end (match-end 0)))
+        (put-text-property (1- end) end 'syntax-table (string-to-syntax "|"))
+        )
+      ))
+  (while (re-search-forward "#string +\\([a-zA-Z_][a-zA-Z0-9_]+\\)" end 'move)
+    (unless (nth 4 (syntax-ppss))
+      (let ((tag (match-string 1))
+          (beg (match-beginning 1)))
+      (unless (string= tag "CODE")
+        (put-text-property beg (1+ beg) 'here-string-marker tag)
+        (put-text-property beg (1+ beg) 'syntax-table (string-to-syntax "|"))
+        (when (re-search-forward (concat "^" (regexp-quote tag) "$") end 'move)
+          ;; Apply string syntax to everything between the start and end of heredoc
+          (let ((end (match-end 0)))
+            (put-text-property (1- end) end 'syntax-table (string-to-syntax "|"))
+            ))))
+
+      )
+    )
+  )
+
+
 (defconst jai-font-lock-defaults
   `(;; Keywords
     (,(jai-keywords-rx jai-keywords) 1 font-lock-keyword-face)
@@ -215,7 +246,7 @@
   (setq-local font-lock-defaults '(jai-font-lock-defaults))
   (setq-local beginning-of-defun-function 'jai-beginning-of-defun)
   (setq-local end-of-defun-function 'jai-end-of-defun)
-
+  (setq-local syntax-propertize-function 'jai-syntax-propertize-function)
   ;; add indent functionality to some characters
   (jai--add-self-insert-hooks)
 
