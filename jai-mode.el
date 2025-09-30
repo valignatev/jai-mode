@@ -106,7 +106,7 @@
          (inside (eq t (nth 3 ppss)))
          (start-pos (nth 8 ppss))
          (tag (get-text-property start-pos 'here-string-marker)))
-    (when (re-search-forward (concat "^[[:space:]]*" (regexp-quote tag) "$") end 'move)
+    (when (re-search-forward (concat "^[[:space:]]*" (regexp-quote tag) ";?$") end 'move)
       (let ((end (match-end 0)))
         (put-text-property (1- end) end 'syntax-table (string-to-syntax "|"))
         )
@@ -118,7 +118,7 @@
       (unless (string= tag "CODE")
         (put-text-property beg (1+ beg) 'here-string-marker tag)
         (put-text-property beg (1+ beg) 'syntax-table (string-to-syntax "|"))
-        (when (re-search-forward (concat "^[[:space:]]*" (regexp-quote tag) "$") end 'move)
+        (when (re-search-forward (concat "^[[:space:]]*" (regexp-quote tag) ";?$") end 'move)
           ;; Apply string syntax to everything between the start and end of heredoc
           (let ((end (match-end 0)))
             (put-text-property (1- end) end 'syntax-table (string-to-syntax "|"))
