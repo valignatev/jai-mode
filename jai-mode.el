@@ -89,7 +89,7 @@
   '("int" "u64" "u32" "u16" "u8"
     "s64" "s32" "s16" "s8" "float"
     "float32" "float64" "string"
-    "bool"))
+    "bool" "void"))
 
 (defun jai-wrap-word-rx (s)
   (concat "\\<" s "\\>"))
@@ -98,7 +98,6 @@
   "build keyword regexp"
   (jai-wrap-word-rx (regexp-opt keywords t)))
 
-(defconst jai-hat-type-rx (rx (group (and "^" (1+ word)))))
 (defconst jai-dollar-type-rx (rx (group "$" (or (1+ word) (opt "$")))))
 (defconst jai-number-rx
   (rx (and
@@ -161,10 +160,17 @@
     ;; Numbers
     (,(jai-wrap-word-rx jai-number-rx) . font-lock-constant-face)
 
+    ;; Procedure names
+    ("\\([[:word:]]+\\)[[:space:]]*:[[:space:]]*:?[[:space:]]*\\(inline\\|#type\\)?[[:space:]]*\(" 1 font-lock-function-name-face)
+
     ;; Types
     (,(jai-keywords-rx jai-typenames) 1 font-lock-type-face)
-    (,jai-hat-type-rx 1 font-lock-type-face)
     (,jai-dollar-type-rx 1 font-lock-type-face)
+    ("\\([[:word:]]+\\)[[:space:]]*:[[:space:]]*:[[:space:]]*\\(struct\\|enum\\|union\\|#type,\\)" 1 font-lock-type-face)
+    ;; TODO: This detects false-positives in case of `for it_index, it: foo`, it thinks that foo is a type.
+    ;; Emacs regexes do not support negative lookaheads, so I'd need to add proper logic to jai-syntax-propertize-function
+    ;; but it's too hard for now. Oh well!
+    ("[[:word:]]+[[:space:]]*:[[:space:]]*\\**\\(\[[[:word:]]*\]\\)?\\**\\([[:word:]]+\\)" 2 font-lock-type-face)
 
     ("---" . font-lock-constant-face)))
 
