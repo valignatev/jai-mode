@@ -170,7 +170,7 @@
     ;; TODO: This detects false-positives in case of `for it_index, it: foo`, it thinks that foo is a type.
     ;; Emacs regexes do not support negative lookaheads, so I'd need to add proper logic to jai-syntax-propertize-function
     ;; but it's too hard for now. Oh well!
-    ("[[:word:]]+[[:space:]]*:[[:space:]]*\\**\\(\[[[:word:]]*\]\\)?\\**\\([[:word:]]+\\)" 2 font-lock-type-face)
+    ("[[:word:]]+[[:space:]]*:[[:space:]]*\\**\\(\[[[:word:]]*\]\\)?*\\**\\([[:word:]]+\\)" 2 font-lock-type-face)
 
     ("---" . font-lock-constant-face)))
 
