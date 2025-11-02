@@ -1,10 +1,11 @@
 ;;; jai-mode.el --- Major mode for JAI  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2023  Kristoffer Grönlund
+;; Copyright (C) 2023-2026  Valentin Ignatev
 
-;; Author: Kristoffer Grönlund <k@ziran.se>
-;; Maintainer: Kristoffer Grönlund <k@ziran.se>
-;; URL: https://github.com/krig/jai-mode
+;; Initial author: Kristoffer Grönlund <k@ziran.se>
+;; Current maintainer: Valentin Ignatev <mail@valigo.gg>
+;; URL: https://github.com/valignatev/jai-mode
 ;; Version: 0.0.1
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: languages
@@ -26,7 +27,7 @@
 
 ;;; Commentary:
 ;;
-;; Major mdoe for JAI
+;; Major mode for JAI
 ;;
 
 ;;; Code:
@@ -172,6 +173,8 @@ and highlights the type name inside."
 
 (defconst jai-font-lock-defaults
   `(;; .() Cast syntax - put this FIRST so it has priority
+    ;; Matching the type inside of .() is hacky.
+    ;; It breaks apart with things like foo.(get_type(baz=bark))
     (jai-postfix-cast-syntax
      (1 font-lock-keyword-face)
      (2 font-lock-keyword-face)
@@ -202,13 +205,19 @@ and highlights the type name inside."
     ("\\([[:word:]]+\\)[[:space:]]*:[[:space:]]*:?[[:space:]]*\\(inline\\|#type\\)?[[:space:]]*\(" 1 font-lock-function-name-face)
 
     ;; Types
+
     (,(jai-keywords-rx jai-typenames) 1 font-lock-type-face)
+
     (,jai-dollar-type-rx 1 font-lock-type-face)
+
+    ;; Foo.{} and bar.[] matching
+    ("\\([[:word:]]+\\)\\.\\(\{\\|\\[\\)" 1 font-lock-type-face)
+
     ("\\([[:word:]]+\\)[[:space:]]*:[[:space:]]*:[[:space:]]*\\(struct\\|enum\\|union\\|#type,\\)" 1 font-lock-type-face)
     ;; TODO: This detects false-positives in case of `for it_index, it: foo`, it thinks that foo is a type.
     ;; Emacs regexes do not support negative lookaheads, so I'd need to add proper logic to jai-syntax-propertize-function
     ;; but it's too hard for now. Oh well!
-    ("[[:word:]]+[[:space:]]*:[[:space:]]*\\**\\(\[[[:word:]]*\]\\)?*\\**[[:space:]]*\\([[:word:]]+\\)" 2 font-lock-type-face)
+    ("[[:word:]]+[[:space:]]*:[[:space:]]*\\**\\(\\[[[:word:]]*\\]\\|\\[\\.\\.\\]\\)?*[[:space:]]*\\**[[:space:]]*\\([[:word:]]+\\)" 2 font-lock-type-face)
 
     ("---" . font-lock-constant-face)
     ))
