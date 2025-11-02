@@ -137,9 +137,47 @@
     )
   )
 
+(defun jai-postfix-cast-syntax (limit)
+  "Font-lock matcher for cast syntax: foo.(Type).
+Matches the .( and the closing ) with balanced parens in between,
+and highlights the type name inside."
+  (let ((found nil))
+    (while (and (not found) (re-search-forward "\\.(" limit t))
+      (let ((open-paren-pos (1- (point)))
+            (cast-start (match-beginning 0)))
+        (save-excursion
+          (goto-char open-paren-pos)
+          ;; Use forward-sexp to find the matching closing paren
+          (condition-case nil
+              (progn
+                (forward-sexp 1)
+                (let ((close-paren-pos (point))
+                      (inner-start (1+ open-paren-pos))
+                      (inner-end (1- (point)))
+                      (type-start nil)
+                      (type-end nil))
+                  ;; Look for the last word in the cast expression
+                  (goto-char inner-start)
+                  (while (re-search-forward "\\([[:word:]]+\\)" inner-end t)
+                    (setq type-start (match-beginning 1))
+                    (setq type-end (match-end 1)))
+                  ;; Store the positions for font-lock
+                  (set-match-data (list cast-start close-paren-pos
+                                        cast-start (+ cast-start 2)  ; subgroup 1: .(
+                                        (1- close-paren-pos) close-paren-pos  ; subgroup 2: )
+                                        type-start type-end))  ; subgroup 3: Type (or nil if no word found)
+                  (setq found t)))
+            (error nil)))))  ; If forward-sexp fails, continue searching
+    found))
 
 (defconst jai-font-lock-defaults
-  `(;; Keywords
+  `(;; .() Cast syntax - put this FIRST so it has priority
+    (jai-postfix-cast-syntax
+     (1 font-lock-keyword-face)
+     (2 font-lock-keyword-face)
+     (3 font-lock-type-face))
+
+    ;; Keywords
     (,(jai-keywords-rx jai-keywords) 1 font-lock-keyword-face)
 
     ;; single quote characters
@@ -170,9 +208,10 @@
     ;; TODO: This detects false-positives in case of `for it_index, it: foo`, it thinks that foo is a type.
     ;; Emacs regexes do not support negative lookaheads, so I'd need to add proper logic to jai-syntax-propertize-function
     ;; but it's too hard for now. Oh well!
-    ("[[:word:]]+[[:space:]]*:[[:space:]]*\\**\\(\[[[:word:]]*\]\\)?*\\**\\([[:word:]]+\\)" 2 font-lock-type-face)
+    ("[[:word:]]+[[:space:]]*:[[:space:]]*\\**\\(\[[[:word:]]*\]\\)?*\\**[[:space:]]*\\([[:word:]]+\\)" 2 font-lock-type-face)
 
-    ("---" . font-lock-constant-face)))
+    ("---" . font-lock-constant-face)
+    ))
 
 ;; add setq-local for older emacs versions
 (unless (fboundp 'setq-local)
