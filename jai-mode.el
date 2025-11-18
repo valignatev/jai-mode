@@ -68,13 +68,16 @@
 
 
 ;; This is needed for correct directive indentation.
-;; This jai-mode uses js-mode indentation and it needs precise list of "preprocessor"
-;; directives. You could ask "what does javascript mode have to do with C++ preprocessor?",
+;; This jai-mode uses js-mode indentation, and it defines a bunch of C++-compatible crap
+;; for whatever reason. You could ask "what does javascript mode have to do with C++ preprocessor?",
 ;; or "why does jai-mode use javascript indentation?".
 ;; And my answer to that is - senator, I don't know, I just work here.
-(defconst cpp-font-lock-keywords-source-directives
-  "add_context\\|align\\|as\\|asm\\|assert\\|bake\\|bake_arguments\\|bytes\\|caller_location\\|c_call\\|char\\|code\\|compiler\\|compile_time\\|complete\\|cpp_method\\|define \\|deprecated\\|dump\\|else\\|endif\\|expand\\|file\\|filepath\\|foreign\\|foreign_library\\|foreign_system_library\\|if\\|ifdef\\|ifndef\\|import\\|insert\\|insert_internal\\|intrinsic\\|library\\|load\\|location\\|modify\\|module_parameters\\|must\\|no_abc\\|no_alias\\|no_aoc\\|no_context\\|no_debug\\|no_padding\\|no_reset\\|place\\|placeholder\\|poke_name\\|procedure_name\\|program_export\\|run\\|run_and_insert\\|runtime_support\\|scope_export\\|scope_file\\|scope_module\\|specified\\|string\\|symmetric\\|system_library\\|this\\|through\\|type\\|type_info_none\\|type_info_procedures_are_void_pointers"
-  "Regular expression used in `cpp-font-lock-keywords'.")
+;; This hack essentially turns those into "impossible" regexes
+;; (a word boundary at the beginning (`\\_<`) immediately followed by a word boundary at the end (`\\_>`))
+;; bypassing that codepath in js-mode entirely.
+(defconst cpp-font-lock-keywords-source-directives "\\_<\\_>")
+(defconst js--opt-cpp-start "\\_<\\_>")
+(defconst js--macro-decl-re "\\_<\\_>")
 
 (defconst jai-builtins
   '("it" "it_index"))
